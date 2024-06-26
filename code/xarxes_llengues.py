@@ -22,7 +22,14 @@ lang_df_nofam = lang_df_nofam.astype(float)
 corr_mat = lang_df_nofam.T.corr('pearson')
 print(corr_mat)
 # %%
-plt.imshow(corr_mat)
+langs = list(corr_mat.index)
+plt.figure(figsize=(20,20))
+plt.imshow(corr_mat,cmap='RdBu',vmin=-1,vmax=1)
+plt.xticks(ticks=range(len(langs)), labels=langs,rotation=90,fontsize=5)
+plt.yticks(ticks=range(len(langs)), labels=langs,fontsize=5)
+plt.colorbar()
+plt.savefig('../results/figures/correlation_matrix.png',bbox_inches='tight')
+
 # %%
 # %% weight distribution
 plt.figure(figsize=(8,6))
@@ -219,7 +226,67 @@ nx.draw(G_lang,
 
 plt.box(False)
 plt.savefig('../results/figures/red_lang_075_families.png',bbox_inches='tight')
+
+# %%
+order_communities = [x for comm in communities_im for x in comm]
+
+plt.figure(figsize=(20,20))
+plt.imshow(corr_mat.loc[order_communities,order_communities],cmap='RdBu',vmin=-1,vmax=1)
+plt.xticks(ticks=range(len(langs)), labels=order_communities,rotation=90,fontsize=5)
+plt.yticks(ticks=range(len(langs)), labels=order_communities,fontsize=5)
+colorbar = plt.colorbar()
+colorbar.ax.tick_params(labelsize=30)
+plt.savefig('../results/figures/correlation_matrix_ordered.png',bbox_inches='tight')
+# %%
+import umap
+# Perform UMAP dimensionality reduction
+reducer = umap.UMAP()
+embedding = reducer.fit_transform(lang_df_nofam)
+# %%
+# Get the order of the indices based on the UMAP embedding
+order = np.argsort(embedding[:, 0])
+# Reorder the correlation matrix
+reordered_corr_matrix = corr_mat.iloc[order, order]
+reordered_corr_matrix.columns = corr_mat.columns[order]
+reordered_corr_matrix.index = corr_mat.index[order]
+# %%
+# Plot the reordered correlation matrix
+plt.figure(figsize=(20,20))
+plt.imshow(reordered_corr_matrix,cmap='RdBu',vmin=-1,vmax=1)
+plt.xticks(ticks=range(len(langs)), labels=order,rotation=90,fontsize=5)
+plt.yticks(ticks=range(len(langs)), labels=order,fontsize=5)
+plt.colorbar()
+plt.savefig('../results/figures/correlation_matrix_ordered_UMAP.png',bbox_inches='tight')
+# %%
+from scipy.cluster.hierarchy import dendrogram, linkage
+from scipy.spatial.distance import squareform
+# Convert the correlation matrix to a distance matrix
+distance_matrix = 1 - corr_mat
+
+distance_matrix[distance_matrix < 0] = 0
+
+
+# Perform hierarchical clustering
+linkage_matrix = linkage(squareform(distance_matrix), method='ward')
+# %%
+# Create a dendrogram
+plt.figure(figsize=(10, 8))
+dendro = dendrogram(linkage_matrix, labels=corr_mat.columns, leaf_rotation=90)
+
+# %%
+
+# Plot the heatmap with the reordered correlation matrix
+reordered_corr_matrix = corr_mat.iloc[dendro['leaves'], dendro['leaves']]
+plt.figure(figsize=(20,20))
+plt.imshow(reordered_corr_matrix,cmap='RdBu',vmin=-1,vmax=1)
+plt.xticks(ticks=range(len(langs)), labels=dendro['leaves'],rotation=90,fontsize=5)
+plt.yticks(ticks=range(len(langs)), labels=dendro['leaves'],fontsize=5)
+plt.colorbar()
+plt.savefig('../results/figures/correlation_matrix_ordered_dendro.png',bbox_inches='tight')
+
 # %% get average profile for each community (with std)
+
+
 
 # %% get network família - comunidad fonològica
 # nodes_top = 
