@@ -120,13 +120,6 @@ plt.xlim(0.7,1.0)
 plt.legend(fontsize=15)
 plt.savefig('../results/figures/percolation_correlation_threshold.png', bbox_inches='tight')
 
-# %%
-
-
-# %%
-
-
-
 # %% create network
 thres = 0.75
 G_lang = nx.Graph()
